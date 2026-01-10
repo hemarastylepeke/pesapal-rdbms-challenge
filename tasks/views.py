@@ -110,6 +110,41 @@ def delete_task(request, task_id):
     
     return redirect('index')
 
+def edit_task(request, task_id):
+    """Handle task updates via modal form."""
+    if request.method == 'POST':
+        rdbms = TaskDB.get_instance()
+        
+        user_id = request.POST.get('user_id')
+        title = request.POST.get('title')
+        description = request.POST.get('description', '')
+        status = request.POST.get('status', 'pending')
+        priority = request.POST.get('priority', '1')
+        
+        try:
+            # Escape single quotes in strings
+            title = title.replace("'", "''")
+            description = description.replace("'", "''")
+            
+            result = rdbms.execute(f"""
+                UPDATE tasks 
+                SET user_id = {user_id}, 
+                    title = '{title}', 
+                    description = '{description}', 
+                    status = '{status}', 
+                    priority = {priority}
+                WHERE id = {task_id}
+            """)
+            
+            # Save to disk after modification
+            TaskDB.save()
+            
+            messages.success(request, 'Task updated successfully!')
+            
+        except Exception as e:
+            messages.error(request, f"Error updating task: {e}")
+    
+    return redirect('index')
 
 def create_user(request):
     """Create a new user."""
