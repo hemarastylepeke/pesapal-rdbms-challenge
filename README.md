@@ -4,7 +4,7 @@ A fully functional task management web application built with Django and powered
 
 ## 🚀 Live Demo
 
-**[View Live Project](https://your-project-url.com)**
+**[View Live Project](https://hemstone-pesapal-project-26.up.railway.app)**
 
 ## 📋 Overview
 
