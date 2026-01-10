@@ -16,6 +16,10 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', 'hemstone-pesapal-project-26.up.railway.app']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://hemstone-pesapal-project-26.up.railway.app',
+]
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
