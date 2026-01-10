@@ -39,7 +39,7 @@ This project demonstrates the implementation of a complete RDBMS from the ground
 
 ## 🛠️ Technology Stack
 
-- **Backend**: Python 3.x, Django
+- **Backend**: Python 3.12.10, Django
 - **Frontend**: HTML5, Tailwind CSS, JavaScript
 - **Database**: Custom RDBMS (Python)
 - **Styling**: Barlow Font, Custom CSS
@@ -60,6 +60,7 @@ project/
 │           └── index.html   # Main application page
 ├── custom_rdbms.db          # Persisted database file
 └── README.md
+........
 ```
 
 ## 🚦 Getting Started
@@ -67,15 +68,15 @@ project/
 ### Prerequisites
 
 - Python 3.8 or higher
-- Django 4.x or higher
+- Django 4.0 or higher
 - django-tailwind (optional, for Tailwind CSS)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/task-manager-rdbms.git
-   cd task-manager-rdbms
+   git https://github.com/hemarastylepeke/pesapal-rdbms-challenge.git
+   cd pesapal-rdbms-challenge
    ```
 
 2. **Create a virtual environment**
@@ -86,8 +87,7 @@ project/
 
 3. **Install dependencies**
    ```bash
-   pip install django
-   pip install django-tailwind  # Optional
+   pip install -r requirements.txt
    ```
 
 4. **Run migrations** (if any Django migrations exist)
@@ -97,7 +97,7 @@ project/
 
 5. **Start the development server**
    ```bash
-   python manage.py runserver
+   python manage.py runserver localhost:8000
    ```
 
 6. **Open your browser**
@@ -175,15 +175,6 @@ WHERE id = 1
 DELETE FROM tasks WHERE id = 1
 ```
 
-## 🎯 Use Cases
-
-This project is ideal for:
-
-- **Learning**: Understanding how databases work under the hood
-- **Teaching**: Demonstrating database concepts and SQL operations
-- **Prototyping**: Quick database setup without external dependencies
-- **Portfolio**: Showcasing system programming and full-stack skills
-
 ## 🔧 Customization
 
 ### Adding New Fields
@@ -216,13 +207,13 @@ The SQL parser can be extended in `simple_rdbms.py`:
 
 ## ⚠️ Limitations
 
-This is an educational RDBMS with some limitations:
+This is RDBMS simple application has some limitations:
 
 - **Performance**: Not optimized for large datasets (1000+ rows)
 - **Concurrency**: No support for concurrent writes
 - **Transactions**: No ACID transaction support
 - **Advanced SQL**: Limited SQL feature set
-- **Security**: SQL injection vulnerable (use parameter escaping)
+- **Security**: SQL injection vulnerable (used parameter escaping)
 - **Scalability**: Single-file storage, not suitable for production
 
 ## 🤝 Contributing
@@ -235,21 +226,17 @@ Contributions are welcome! Feel free to:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## 👨‍💻 Author
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: your.email@example.com
+- GitHub: [@hemarastylepeke](https://github.com/hemarastylepeke)
+- Email: omollohemstone@gmail.com
 
 ## 🙏 Acknowledgments
 
 - Inspired by SQLite's architecture
-- Built as a learning project to understand RDBMS internals
 - Special thanks to the Django and Python communities
+- Appreciation to Claude (Anthropic AI) team. Claude Sonnet model was used for debugging and generation of some sections of the code as well as this README.md
 
 ## 📚 Resources
 
@@ -259,4 +246,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**Note**: This project is for educational purposes. For production applications, use established database systems like PostgreSQL, MySQL, or SQLite.
+**Note**: This project is just a simple demonstration of how RDBMS actually works behind the scenes. For production applications, use established database systems like PostgreSQL, MySQL, or SQLite in production.
