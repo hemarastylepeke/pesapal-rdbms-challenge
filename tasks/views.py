@@ -13,13 +13,18 @@ def index(request):
     
     try:
         # Get all tasks with user information via JOIN
-        tasks = rdbms.execute("""
+        raw_tasks = rdbms.execute("""
             SELECT * FROM tasks
             JOIN users ON tasks.user_id = users.id
         """)
         
+        tasks = raw_tasks if raw_tasks else []
+        
         # Get all users for the form
-        users = rdbms.execute("SELECT * FROM users")
+        raw_users = rdbms.execute("SELECT * FROM users")
+        
+        users = raw_users if raw_users else []
+        
     except Exception as e:
         messages.error(request, f"Database error: {e}")
         tasks = []
