@@ -4,6 +4,7 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     {% tailwind_css %}
     <meta charset="UTF-8">
@@ -16,233 +17,486 @@
         body {
             font-family: 'Barlow', sans-serif;
         }
+
         .modal {
             display: none;
         }
+
         .modal.active {
             display: flex;
         }
     </style>
 </head>
+
 <body class="bg-zinc-900 p-5">
     <div class="max-w-7xl mx-auto">
         <div class="border-b border-gray-500 py-3 mb-4">
             <h1 class="text-yellow-600 text-3xl font-bold mb-2">Task Manager</h1>
             <p class="text-gray-400 mb-8">Powered by Custom RDBMS with JOIN support</p>
         </div>
-        
         {% if messages %}
         <div class="mb-5">
             {% for message in messages %}
-                <div class="p-3 rounded mb-2 {% if message.tags == 'success' %}bg-green-900/50 text-green-300 border border-green-700{% elif message.tags == 'error' %}bg-red-900/50 text-red-300 border border-red-700{% endif %}">
-                    {{ message }}
-                </div>
+            <div
+                class="p-3 rounded mb-2 {% if message.tags == 'success' %}bg-green-900/50 text-green-300 border border-green-700{% elif message.tags == 'error' %}bg-red-900/50 text-red-300 border border-red-700{% endif %}">
+                {{ message }}
+            </div>
             {% endfor %}
         </div>
         {% endif %}
-        
-        <div class="bg-zinc-800 rounded-lg p-5 mb-5 shadow-xl border border-zinc-700">
-            <h2 class="text-gray-200 text-lg font-semibold mb-4">Create New Task</h2>
-            <form method="POST" action="{% url 'create_task' %}" class="space-y-3">
-                {% csrf_token %}
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <select name="user_id" required class="px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
-                        <option value="">Select User</option>
-                        {% for user_id, user in users %}
-                            <option value="{{ user.id }}">{{ user.name }}</option>
-                        {% endfor %}
-                    </select>
-                    
-                    <input type="text" name="title" placeholder="Task Title" required class="px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 placeholder-gray-500 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
-                    
-                    <select name="status" required class="px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
-                        <option value="pending">Pending</option>
-                        <option value="in-progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                    </select>
-                    
-                    <select name="priority" required class="px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
-                        <option value="1">Low Priority</option>
-                        <option value="2">Medium Priority</option>
-                        <option value="3">High Priority</option>
-                    </select>
-                </div>
-                
-                <textarea name="description" placeholder="Task Description (optional)" class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 placeholder-gray-500 rounded text-sm min-h-[60px] resize-y focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"></textarea>
-                
-                <button type="submit" class="px-4 py-2 bg-yellow-500 text-black rounded text-sm font-semibold hover:bg-yellow-400 transition-colors">Create Task</button>
-            </form>
-        </div>
-        
-        <div class="bg-zinc-800 rounded-lg p-5 mb-5 shadow-xl border border-zinc-700">
-            <h2 class="text-gray-200 text-lg font-semibold mb-4">Tasks (with User JOIN)</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full border-collapse">
-                    <thead>
-                        <tr class="bg-zinc-900/50">
-                            <th class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">ID</th>
-                            <th class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">User</th>
-                            <th class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">Title</th>
-                            <th class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">Description</th>
-                            <th class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">Status</th>
-                            <th class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">Priority</th>
-                            <th class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for task in tasks %}
-                        <tr class="hover:bg-zinc-700/50 transition-colors">
-                            <td class="px-3 py-3 text-sm border-b border-zinc-700 text-gray-300">{{ task|lookup:"tasks.id" }}</td>
-                            <td class="px-3 py-3 text-sm border-b border-zinc-700 text-gray-300">{{ task|lookup:"users.name" }}</td>
-                            <td class="px-3 py-3 text-sm border-b border-zinc-700 text-gray-300">{{ task|lookup:"tasks.title" }}</td>
-                            <td class="px-3 py-3 text-sm border-b border-zinc-700 text-gray-500">{{ task|lookup:"tasks.description"|default:"—" }}</td>
-                            <td class="px-3 py-3 text-sm border-b border-zinc-700">
-                                <span class="px-2 py-1 rounded text-xs font-semibold inline-block {% if task|lookup:'tasks.status' == 'pending' %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30{% elif task|lookup:'tasks.status' == 'in-progress' %}bg-blue-500/20 text-blue-400 border border-blue-500/30{% elif task|lookup:'tasks.status' == 'completed' %}bg-green-500/20 text-green-400 border border-green-500/30{% endif %}">
-                                    {{ task|lookup:"tasks.status" }}
-                                </span>
-                            </td>
-                            <td class="px-3 py-3 text-sm border-b border-zinc-700 font-semibold {% if task|lookup:'tasks.priority' == 1 %}text-green-400{% elif task|lookup:'tasks.priority' == 2 %}text-yellow-400{% else %}text-red-400{% endif %}">
-                                {% if task|lookup:"tasks.priority" == 1 %}Low
-                                {% elif task|lookup:"tasks.priority" == 2 %}Medium
-                                {% else %}High{% endif %}
-                            </td>
-                            <td class="px-3 py-3 text-sm border-b border-zinc-700">
-                                <div class="flex gap-1">
-                                    <button onclick="openEditModal({{ task|lookup:'tasks.id' }}, '{{ task|lookup:'tasks.title' }}', '{{ task|lookup:'tasks.description'|default:'' }}', '{{ task|lookup:'tasks.status' }}', {{ task|lookup:'tasks.priority' }}, {{ task|lookup:'tasks.user_id' }})" class="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-500 transition-colors">
-                                        Edit
-                                    </button>
-                                    
-                                    <form method="POST" action="{% url 'update_task' task|lookup:"tasks.id" %}" class="inline">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="status" value="completed">
-                                        <button type="submit" class="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-500 transition-colors">Complete</button>
-                                    </form>
-                                    
-                                    <form method="POST" action="{% url 'delete_task' task|lookup:"tasks.id" %}" class="inline">
-                                        {% csrf_token %}
-                                        <button type="submit" class="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-500 transition-colors">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="px-3 py-8 text-center text-gray-600">No tasks yet</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div class="bg-zinc-800 rounded-lg p-5 shadow-xl border border-zinc-700">
-            <h2 class="text-gray-200 text-lg font-semibold mb-4">Add New User</h2>
-            <form method="POST" action="{% url 'create_user' %}">
-                {% csrf_token %}
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <input type="text" name="name" placeholder="Name" required class="px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 placeholder-gray-500 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
-                    <input type="email" name="email" placeholder="Email" required class="px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 placeholder-gray-500 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
-                    <button type="submit" class="px-4 py-2 bg-yellow-500 text-black rounded text-sm font-semibold hover:bg-yellow-400 transition-colors">Add User</button>
-                </div>
-            </form>
-        </div>
-    </div>
+        <div class="flex flex-col md:flex-row gap-3">
+            <div class="w-full">
+                <h1 class="text-gray-200 text-lg font-semibold mb-4">CRUD OPERATIONS</h1>
+                <div class="bg-zinc-800 rounded-lg p-5 mb-5 shadow-xl border border-zinc-700">
+                    <h2 class="text-gray-200 text-lg font-semibold mb-4">Create New Task</h2>
+                    <form method="POST" action="{% url 'create_task' %}" class="space-y-3">
+                        {% csrf_token %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <select name="user_id" required
+                                class="px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                                <option value="">Select User</option>
+                                {% for user_id, user in users %}
+                                <option value="{{ user.id }}">{{ user.name }}</option>
+                                {% endfor %}
+                            </select>
 
-    <!-- Edit Task Modal -->
-    <div id="editModal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50">
-        <div class="bg-zinc-800 rounded-lg p-6 max-w-2xl w-full mx-4 border border-zinc-700 shadow-2xl">
-            <div class="flex justify-between items-center mb-5">
-                <h2 class="text-gray-200 text-xl font-semibold">Edit Task</h2>
-                <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-200 text-2xl">&times;</button>
-            </div>
-            
-            <form id="editForm" method="POST" class="space-y-4">
-                {% csrf_token %}
-                
-                <div>
-                    <label class="block text-gray-300 text-sm font-semibold mb-2">Assigned User</label>
-                    <select id="edit_user_id" name="user_id" required class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
-                        {% for user_id, user in users %}
-                            <option value="{{ user.id }}">{{ user.name }}</option>
-                        {% endfor %}
-                    </select>
+                            <input type="text" name="title" placeholder="Task Title" required
+                                class="px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 placeholder-gray-500 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+
+                            <select name="status" required
+                                class="px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                                <option value="pending">Pending</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                            </select>
+
+                            <select name="priority" required
+                                class="px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                                <option value="1">Low Priority</option>
+                                <option value="2">Medium Priority</option>
+                                <option value="3">High Priority</option>
+                            </select>
+                        </div>
+
+                        <textarea name="description" placeholder="Task Description (optional)"
+                            class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 placeholder-gray-500 rounded text-sm min-h-[60px] resize-y focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"></textarea>
+
+                        <button type="submit"
+                            class="px-4 py-2 bg-yellow-500 text-black rounded text-sm font-semibold hover:bg-yellow-400 transition-colors">Create
+                            Task</button>
+                    </form>
                 </div>
-                
-                <div>
-                    <label class="block text-gray-300 text-sm font-semibold mb-2">Task Title</label>
-                    <input type="text" id="edit_title" name="title" required class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-300 text-sm font-semibold mb-2">Description</label>
-                    <textarea id="edit_description" name="description" class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm min-h-[100px] resize-y focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"></textarea>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-gray-300 text-sm font-semibold mb-2">Status</label>
-                        <select id="edit_status" name="status" required class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
-                            <option value="pending">Pending</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-gray-300 text-sm font-semibold mb-2">Priority</label>
-                        <select id="edit_priority" name="priority" required class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
-                            <option value="1">Low Priority</option>
-                            <option value="2">Medium Priority</option>
-                            <option value="3">High Priority</option>
-                        </select>
+                <div class="bg-zinc-800 rounded-lg p-5 mb-5 shadow-xl border border-zinc-700">
+                    <h2 class="text-gray-200 text-lg font-semibold mb-4">Tasks (with User JOIN)</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-zinc-900/50">
+                                    <th
+                                        class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">
+                                        ID</th>
+                                    <th
+                                        class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">
+                                        User</th>
+                                    <th
+                                        class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">
+                                        Title</th>
+                                    <th
+                                        class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">
+                                        Description</th>
+                                    <th
+                                        class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">
+                                        Status</th>
+                                    <th
+                                        class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">
+                                        Priority</th>
+                                    <th
+                                        class="px-3 py-3 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">
+                                        Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in tasks %}
+                                <tr class="hover:bg-zinc-700/50 transition-colors">
+                                    <td class="px-3 py-3 text-sm border-b border-zinc-700 text-gray-300">{{
+                                        task|lookup:"tasks.id" }}</td>
+                                    <td class="px-3 py-3 text-sm border-b border-zinc-700 text-gray-300">{{
+                                        task|lookup:"users.name" }}</td>
+                                    <td class="px-3 py-3 text-sm border-b border-zinc-700 text-gray-300">{{
+                                        task|lookup:"tasks.title" }}</td>
+                                    <td class="px-3 py-3 text-sm border-b border-zinc-700 text-gray-500">{{
+                                        task|lookup:"tasks.description"|default:"—" }}</td>
+                                    <td class="px-3 py-3 text-sm border-b border-zinc-700">
+                                        <span
+                                            class="px-2 py-1 rounded text-xs font-semibold inline-block {% if task|lookup:'tasks.status' == 'pending' %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30{% elif task|lookup:'tasks.status' == 'in-progress' %}bg-blue-500/20 text-blue-400 border border-blue-500/30{% elif task|lookup:'tasks.status' == 'completed' %}bg-green-500/20 text-green-400 border border-green-500/30{% endif %}">
+                                            {{ task|lookup:"tasks.status" }}
+                                        </span>
+                                    </td>
+                                    <td
+                                        class="px-3 py-3 text-sm border-b border-zinc-700 font-semibold {% if task|lookup:'tasks.priority' == 1 %}text-green-400{% elif task|lookup:'tasks.priority' == 2 %}text-yellow-400{% else %}text-red-400{% endif %}">
+                                        {% if task|lookup:"tasks.priority" == 1 %}Low
+                                        {% elif task|lookup:"tasks.priority" == 2 %}Medium
+                                        {% else %}High{% endif %}
+                                    </td>
+                                    <td class="px-3 py-3 text-sm border-b border-zinc-700">
+                                        <div class="flex gap-1">
+                                            <button
+                                                onclick="openEditModal({{ task|lookup:'tasks.id' }}, '{{ task|lookup:'tasks.title' }}', '{{ task|lookup:'tasks.description'|default:'' }}', '{{ task|lookup:'tasks.status' }}', {{ task|lookup:'tasks.priority' }}, {{ task|lookup:'tasks.user_id' }})"
+                                                class="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-500 transition-colors">
+                                                Edit
+                                            </button>
+
+                                            <form method="POST" action="{% url 'update_task' task|lookup:" tasks.id" %}"
+                                                class="inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="status" value="completed">
+                                                <button type="submit"
+                                                    class="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-500 transition-colors">Complete</button>
+                                            </form>
+
+                                            <form method="POST" action="{% url 'delete_task' task|lookup:" tasks.id" %}"
+                                                class="inline">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                    class="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-500 transition-colors">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="px-3 py-8 text-center text-gray-600">No tasks yet</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                
-                <div class="flex gap-3 pt-2">
-                    <button type="submit" class="px-6 py-2 bg-yellow-500 text-black rounded text-sm font-semibold hover:bg-yellow-400 transition-colors">
-                        Save Changes
-                    </button>
-                    <button type="button" onclick="closeEditModal()" class="px-6 py-2 bg-zinc-700 text-gray-300 rounded text-sm font-semibold hover:bg-zinc-600 transition-colors">
-                        Cancel
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 
-    <script>
-        function openEditModal(taskId, title, description, status, priority, userId) {
-            // Set form action
-            document.getElementById('editForm').action = `/task/${taskId}/edit/`;
-            
-            // Populate form fields
-            document.getElementById('edit_title').value = title;
-            document.getElementById('edit_description').value = description;
-            document.getElementById('edit_status').value = status;
-            document.getElementById('edit_priority').value = priority;
-            document.getElementById('edit_user_id').value = userId;
-            
-            // Show modal
-            document.getElementById('editModal').classList.add('active');
-        }
-        
-        function closeEditModal() {
-            document.getElementById('editModal').classList.remove('active');
-        }
-        
-        // Close modal when clicking outside
-        document.getElementById('editModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeEditModal();
+                <div class="bg-zinc-800 rounded-lg p-5 shadow-xl border border-zinc-700">
+                    <h2 class="text-gray-200 text-lg font-semibold mb-4">Add New User</h2>
+                    <form method="POST" action="{% url 'create_user' %}">
+                        {% csrf_token %}
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <input type="text" name="name" placeholder="Name" required
+                                class="px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 placeholder-gray-500 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                            <input type="email" name="email" placeholder="Email" required
+                                class="px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 placeholder-gray-500 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                            <button type="submit"
+                                class="px-4 py-2 bg-yellow-500 text-black rounded text-sm font-semibold hover:bg-yellow-400 transition-colors">Add
+                                User</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="w-full">
+                <h1 class="text-gray-200 text-lg font-semibold mb-4">SQL INTERACTION</h1>
+                <!-- SQL Query Interface -->
+                <div class="bg-zinc-800 rounded-lg p-5 mb-5 shadow-xl border border-zinc-700">
+                    <h2 class="text-gray-200 text-lg font-semibold mb-4">SQL Query Interface</h2>
+                    <div class="space-y-3">
+                        <textarea id="sqlQuery" placeholder="Enter SQL query (e.g., SELECT * FROM tasks)"
+                            class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 placeholder-gray-500 rounded text-sm min-h-[100px] resize-y focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 font-mono"></textarea>
+
+                        <button onclick="executeQuery()"
+                            class="px-4 py-2 bg-yellow-500 text-black rounded text-sm font-semibold hover:bg-yellow-400 transition-colors">
+                            Execute Query
+                        </button>
+
+                        <div id="queryResult" class="hidden">
+                            <h3 class="text-gray-300 text-sm font-semibold mb-2">Results:</h3>
+                            <div id="queryResultContent" class="bg-zinc-900 rounded p-3 overflow-x-auto"></div>
+                        </div>
+
+                        <div id="queryError"
+                            class="hidden p-3 rounded bg-red-900/50 text-red-300 border border-red-700">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Explorer -->
+                <div class="bg-zinc-800 rounded-lg p-5 shadow-xl border border-zinc-700">
+                    <h2 class="text-gray-200 text-lg font-semibold mb-4">Table Explorer</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-300 text-sm font-semibold mb-2">Select Table</label>
+                            <select id="tableSelect" onchange="loadTableSchema()"
+                                class="w-full md:w-64 px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                                <option value="">-- Choose a table --</option>
+                            </select>
+                        </div>
+
+                        <div id="tableSchema" class="hidden">
+                            <h3 class="text-gray-300 text-sm font-semibold mb-3">Table Structure: <span id="tableName"
+                                    class="text-yellow-400"></span></h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full border-collapse">
+                                    <thead>
+                                        <tr class="bg-zinc-900/50">
+                                            <th
+                                                class="px-3 py-2 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">
+                                                Column Name</th>
+                                            <th
+                                                class="px-3 py-2 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">
+                                                Data Type</th>
+                                            <th
+                                                class="px-3 py-2 text-left text-gray-300 font-semibold text-sm border-b border-zinc-700">
+                                                Constraints</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="schemaTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Task Modal -->
+        <div id="editModal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50">
+            <div class="bg-zinc-800 rounded-lg p-6 max-w-2xl w-full mx-4 border border-zinc-700 shadow-2xl">
+                <div class="flex justify-between items-center mb-5">
+                    <h2 class="text-gray-200 text-xl font-semibold">Edit Task</h2>
+                    <button onclick="closeEditModal()"
+                        class="text-gray-400 hover:text-gray-200 text-2xl">&times;</button>
+                </div>
+
+                <form id="editForm" method="POST" class="space-y-4">
+                    {% csrf_token %}
+
+                    <div>
+                        <label class="block text-gray-300 text-sm font-semibold mb-2">Assigned User</label>
+                        <select id="edit_user_id" name="user_id" required
+                            class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                            {% for user_id, user in users %}
+                            <option value="{{ user.id }}">{{ user.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-300 text-sm font-semibold mb-2">Task Title</label>
+                        <input type="text" id="edit_title" name="title" required
+                            class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-300 text-sm font-semibold mb-2">Description</label>
+                        <textarea id="edit_description" name="description"
+                            class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm min-h-[100px] resize-y focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-300 text-sm font-semibold mb-2">Status</label>
+                            <select id="edit_status" name="status" required
+                                class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                                <option value="pending">Pending</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-300 text-sm font-semibold mb-2">Priority</label>
+                            <select id="edit_priority" name="priority" required
+                                class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 text-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                                <option value="1">Low Priority</option>
+                                <option value="2">Medium Priority</option>
+                                <option value="3">High Priority</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 pt-2">
+                        <button type="submit"
+                            class="px-6 py-2 bg-yellow-500 text-black rounded text-sm font-semibold hover:bg-yellow-400 transition-colors">
+                            Save Changes
+                        </button>
+                        <button type="button" onclick="closeEditModal()"
+                            class="px-6 py-2 bg-zinc-700 text-gray-300 rounded text-sm font-semibold hover:bg-zinc-600 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            function openEditModal(taskId, title, description, status, priority, userId) {
+                // Set form action
+                document.getElementById('editForm').action = `/task/${taskId}/edit/`;
+
+                // Populate form fields
+                document.getElementById('edit_title').value = title;
+                document.getElementById('edit_description').value = description;
+                document.getElementById('edit_status').value = status;
+                document.getElementById('edit_priority').value = priority;
+                document.getElementById('edit_user_id').value = userId;
+
+                // Show modal
+                document.getElementById('editModal').classList.add('active');
             }
-        });
-        
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeEditModal();
+
+            function closeEditModal() {
+                document.getElementById('editModal').classList.remove('active');
             }
-        });
-    </script>
+
+            // Close modal when clicking outside
+            document.getElementById('editModal').addEventListener('click', function (e) {
+                if (e.target === this) {
+                    closeEditModal();
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeEditModal();
+                }
+            });
+
+            // SQL Query Execution
+            async function executeQuery() {
+                const query = document.getElementById('sqlQuery').value.trim();
+                const resultDiv = document.getElementById('queryResult');
+                const errorDiv = document.getElementById('queryError');
+                const contentDiv = document.getElementById('queryResultContent');
+
+                // Hide previous results
+                resultDiv.classList.add('hidden');
+                errorDiv.classList.add('hidden');
+
+                if (!query) {
+                    errorDiv.textContent = 'Please enter a SQL query';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+
+                try {
+                    const formData = new FormData();
+                    formData.append('query', query);
+                    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+                    const response = await fetch('/sql/execute/', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (data.error) {
+                        errorDiv.textContent = data.error;
+                        errorDiv.classList.remove('hidden');
+                    } else if (data.success) {
+                        // Display results
+                        if (data.data && data.data.length > 0) {
+                            let html = '<table class="w-full text-sm"><thead><tr class="border-b border-zinc-700">';
+
+                            // Headers
+                            data.columns.forEach(col => {
+                                html += `<th class="px-3 py-2 text-left text-gray-300 font-semibold">${col}</th>`;
+                            });
+                            html += '</tr></thead><tbody>';
+
+                            // Rows
+                            data.data.forEach(row => {
+                                html += '<tr class="border-b border-zinc-800">';
+                                data.columns.forEach(col => {
+                                    html += `<td class="px-3 py-2 text-gray-400">${row[col] !== null ? row[col] : '<span class="text-gray-600">NULL</span>'}</td>`;
+                                });
+                                html += '</tr>';
+                            });
+
+                            html += '</tbody></table>';
+                            html += `<p class="text-gray-500 text-xs mt-2">${data.data.length} row(s) returned</p>`;
+                            contentDiv.innerHTML = html;
+                        } else if (data.message) {
+                            contentDiv.innerHTML = `<p class="text-green-400">${data.message}</p>`;
+                            if (data.rows_affected !== undefined) {
+                                contentDiv.innerHTML += `<p class="text-gray-500 text-sm">${data.rows_affected} row(s) affected</p>`;
+                            }
+                        }
+
+                        resultDiv.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    errorDiv.textContent = 'Failed to execute query: ' + error.message;
+                    errorDiv.classList.remove('hidden');
+                }
+            }
+
+            // Table Explorer
+            async function loadTableList() {
+                try {
+                    const response = await fetch('/sql/schema/');
+                    const data = await response.json();
+
+                    const select = document.getElementById('tableSelect');
+                    data.tables.forEach(table => {
+                        const option = document.createElement('option');
+                        option.value = table;
+                        option.textContent = table;
+                        select.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Failed to load tables:', error);
+                }
+            }
+
+            async function loadTableSchema() {
+                const tableName = document.getElementById('tableSelect').value;
+                const schemaDiv = document.getElementById('tableSchema');
+
+                if (!tableName) {
+                    schemaDiv.classList.add('hidden');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/sql/schema/?table=${tableName}`);
+                    const data = await response.json();
+
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+
+                    // Display table name
+                    document.getElementById('tableName').textContent = data.table;
+
+                    // Build schema table
+                    const tbody = document.getElementById('schemaTableBody');
+                    tbody.innerHTML = '';
+
+                    data.columns.forEach(col => {
+                        const row = document.createElement('tr');
+                        row.className = 'hover:bg-zinc-700/30 transition-colors';
+
+                        const constraints = [];
+                        if (col.primary_key) constraints.push('<span class="text-yellow-400">PRIMARY KEY</span>');
+                        if (col.unique) constraints.push('<span class="text-blue-400">UNIQUE</span>');
+                        if (!col.nullable) constraints.push('<span class="text-red-400">NOT NULL</span>');
+
+                        row.innerHTML = `
+                        <td class="px-3 py-2 text-sm border-b border-zinc-800 text-gray-300">${col.name}</td>
+                        <td class="px-3 py-2 text-sm border-b border-zinc-800 text-gray-400">${col.type}</td>
+                        <td class="px-3 py-2 text-sm border-b border-zinc-800">${constraints.join(', ') || '<span class="text-gray-600">—</span>'}</td>
+                    `;
+
+                        tbody.appendChild(row);
+                    });
+
+                    schemaDiv.classList.remove('hidden');
+                } catch (error) {
+                    alert('Failed to load table schema: ' + error.message);
+                }
+            }
+
+            // Load tables on page load
+            loadTableList();
+        </script>
 </body>
+
 </html>

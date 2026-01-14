@@ -173,3 +173,98 @@ def create_user(request):
             messages.error(request, f"Error creating user: {e}")
     
     return redirect('index')
+
+
+def execute_sql(request):
+    """Execute a custom SQL query and return results as JSON."""
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        rdbms = TaskDB.get_instance()
+        query = request.POST.get('query', '').strip()
+        
+        if not query:
+            return JsonResponse({'error': 'Query cannot be empty'}, status=400)
+        
+        try:
+            result = rdbms.execute(query)
+            
+            # Check if query modifies data
+            query_upper = query.upper().strip()
+            if any(query_upper.startswith(cmd) for cmd in ['INSERT', 'UPDATE', 'DELETE', 'CREATE', 'DROP']):
+                TaskDB.save()
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Query executed successfully',
+                    'rows_affected': len(result) if isinstance(result, list) else 0
+                })
+            
+            # For SELECT queries, normalize the result format
+            if isinstance(result, list) and len(result) > 0:
+                # Check if it's a list of tuples (row_id, row_dict) or list of dicts
+                if isinstance(result[0], tuple):
+                    # Format: [(row_id, {col: val, ...}), ...]
+                    normalized_data = [row[1] for row in result]
+                elif isinstance(result[0], dict):
+                    # Format: [{col: val, ...}, ...] (from JOIN)
+                    normalized_data = result
+                else:
+                    normalized_data = []
+                
+                return JsonResponse({
+                    'success': True,
+                    'columns': list(normalized_data[0].keys()) if normalized_data else [],
+                    'data': normalized_data
+                })
+            else:
+                # Empty result set
+                return JsonResponse({
+                    'success': True,
+                    'columns': [],
+                    'data': []
+                })
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
+def get_table_schema(request):
+    """Get schema information for a specific table."""
+    from django.http import JsonResponse
+    
+    table_name = request.GET.get('table', '')
+    
+    if not table_name:
+        # Return list of all tables
+        rdbms = TaskDB.get_instance()
+        tables = list(rdbms.db.tables.keys())
+        return JsonResponse({'tables': tables})
+    
+    try:
+        rdbms = TaskDB.get_instance()
+        
+        if table_name not in rdbms.db.tables:
+            return JsonResponse({'error': f'Table "{table_name}" not found'}, status=404)
+        
+        table = rdbms.db.tables[table_name]
+        
+        # Get column information - columns is a dict, not a list
+        columns = []
+        for col_name, col in table.columns.items():
+            columns.append({
+                'name': col.name,
+                'type': col.dtype.value,  # Get the string value of the enum
+                'primary_key': col.primary_key,
+                'unique': col.unique,
+                'nullable': not col.not_null
+            })
+        
+        return JsonResponse({
+            'table': table_name,
+            'columns': columns
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
